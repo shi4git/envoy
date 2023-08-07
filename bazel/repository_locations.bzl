@@ -102,22 +102,22 @@ REPOSITORY_LOCATIONS_SPEC = dict(
     boringssl = dict(
         project_name = "BoringSSL",
         project_desc = "Minimal OpenSSL fork",
-        project_url = "https://github.com/google/boringssl",
+        project_url = "https://github.com/shi4git/boringssl",
         # To update BoringSSL, which tracks Chromium releases:
         # 1. Open https://omahaproxy.appspot.com/ and note <current_version> of linux/beta release.
         # 2. Open https://chromium.googlesource.com/chromium/src/+/refs/tags/<current_version>/DEPS and note <boringssl_revision>.
         # 3. Find a commit in BoringSSL's "master-with-bazel" branch that merges <boringssl_revision>.
         #
         # chromium-105.0.5195.37 (linux/beta)
-        version = "098695591f3a2665fccef83a3732ecfc99acdcdd",
-        sha256 = "e141448cf6f686b6e9695f6b6459293fd602c8d51efe118a83106752cf7e1280",
+        version = "aea77bb5c7591c8072c84d5c23208604949f3164",
+        sha256 = "78ce8b77710ef465703dd9017ed463398858f3fea6da7f0e19b251d4c8aa283e",
         strip_prefix = "boringssl-{version}",
-        urls = ["https://github.com/google/boringssl/archive/{version}.tar.gz"],
+        urls = ["https://github.com/google/shi4git/archive/{version}.tar.gz"],
         use_category = ["controlplane", "dataplane_core"],
         release_date = "2022-07-19",
         cpe = "cpe:2.3:a:google:boringssl:*",
         license = "Mixed",
-        license_url = "https://github.com/google/boringssl/blob/{version}/LICENSE",
+        license_url = "https://github.com/shi4git/boringssl/blob/{version}/LICENSE",
     ),
     boringssl_fips = dict(
         project_name = "BoringSSL (FIPS)",
