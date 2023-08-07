@@ -1,4 +1,5 @@
 load(":dev_binding.bzl", "envoy_dev_binding")
+load(":genrule_repository.bzl", "genrule_repository")
 load("@envoy_api//bazel:envoy_http_archive.bzl", "envoy_http_archive")
 load("@envoy_api//bazel:external_deps.bzl", "load_repository_locations")
 load(":repository_locations.bzl", "PROTOC_VERSIONS", "REPOSITORY_LOCATIONS_SPEC")
@@ -30,6 +31,14 @@ def external_http_archive(name, **kwargs):
         name,
         locations = REPOSITORY_LOCATIONS,
         **kwargs
+    )
+
+# Use this macro to reference any genrule_repository sourced from bazel/repository_locations.bzl.
+def external_genrule_repository(name, **kwargs):
+    location = REPOSITORY_LOCATIONS[name]
+    genrule_repository(
+        name = name,
+        **dict(location, **kwargs)
     )
 
 def _default_envoy_build_config_impl(ctx):
@@ -77,54 +86,12 @@ def _envoy_repo_impl(repository_ctx):
     repository_ctx.file("path.bzl", "PATH = '%s'" % repo_version_path.dirname)
     repository_ctx.file("__init__.py", "PATH = '%s'\nVERSION = '%s'\nAPI_VERSION = '%s'" % (repo_version_path.dirname, version, api_version))
     repository_ctx.file("WORKSPACE", "")
-    repository_ctx.file("BUILD", '''
+    repository_ctx.file("BUILD", """
 load("@rules_python//python:defs.bzl", "py_library")
-load("@envoy//tools/base:envoy_python.bzl", "envoy_entry_point")
-load("//:path.bzl", "PATH")
 
 py_library(name = "envoy_repo", srcs = ["__init__.py"], visibility = ["//visibility:public"])
 
-envoy_entry_point(
-    name = "release",
-    args = [
-        "release",
-        PATH,
-    ],
-    pkg = "envoy.base.utils",
-    script = "envoy.project",
-)
-
-envoy_entry_point(
-    name = "dev",
-    args = [
-        "dev",
-        PATH,
-    ],
-    pkg = "envoy.base.utils",
-    script = "envoy.project",
-)
-
-envoy_entry_point(
-    name = "sync",
-    args = [
-        "sync",
-        PATH,
-    ],
-    pkg = "envoy.base.utils",
-    script = "envoy.project",
-)
-
-envoy_entry_point(
-    name = "publish",
-    args = [
-        "publish",
-        PATH,
-    ],
-    pkg = "envoy.base.utils",
-    script = "envoy.project",
-)
-
-''')
+""")
 
 _envoy_repo = repository_rule(
     implementation = _envoy_repo_impl,
@@ -300,16 +267,15 @@ def _boringssl():
     external_http_archive(
         name = "boringssl",
         patch_args = ["-p1"],
-        patches = [
-            "@envoy//bazel:boringssl_static.patch",
-            "@envoy//bazel:boringssl_CVE-2023-0286.patch",
-        ],
+        patches = ["@envoy//bazel:boringssl_static.patch"],
     )
 
 def _boringssl_fips():
-    external_http_archive(
+    external_genrule_repository(
         name = "boringssl_fips",
+        genrule_cmd_file = "@envoy//bazel/external:boringssl_fips.genrule_cmd",
         build_file = "@envoy//bazel/external:boringssl_fips.BUILD",
+        patches = ["@envoy//bazel/external:boringssl_fips.patch"],
     )
 
 def _com_github_circonus_labs_libcircllhist():
@@ -430,12 +396,6 @@ def _com_github_unicode_org_icu():
 def _com_github_intel_ipp_crypto_crypto_mb():
     external_http_archive(
         name = "com_github_intel_ipp_crypto_crypto_mb",
-        # Patch removes from CMakeLists.txt instructions to
-        # to create dynamic *.so library target. Linker fails when linking
-        # with boringssl_fips library. Envoy uses only static library
-        # anyways, so created dynamic library would not be used anyways.
-        patches = ["@envoy//bazel/foreign_cc:ipp-crypto-skip-dynamic-lib.patch"],
-        patch_args = ["-p1"],
         build_file_content = BUILD_ALL_CONTENT,
     )
 
@@ -1070,13 +1030,7 @@ def _proxy_wasm_cpp_sdk():
     external_http_archive(name = "proxy_wasm_cpp_sdk")
 
 def _proxy_wasm_cpp_host():
-    external_http_archive(
-        name = "proxy_wasm_cpp_host",
-        patch_args = ["-p1"],
-        patches = [
-            "@envoy//bazel:proxy_wasm_cpp_host.patch",
-        ],
-    )
+    external_http_archive(name = "proxy_wasm_cpp_host")
 
 def _emsdk():
     external_http_archive(
@@ -1261,10 +1215,6 @@ filegroup(
     external_http_archive(
         name = "edenhill_librdkafka",
         build_file_content = BUILD_ALL_CONTENT,
-        # (adam.kotwasinski) librdkafka bundles in cJSON, which is also bundled in by libvppinfra.
-        # For now, let's just drop this dependency from Kafka, as it's used only for monitoring.
-        patches = ["@envoy//bazel/foreign_cc:librdkafka.patch"],
-        patch_args = ["-p1"],
     )
     native.bind(
         name = "librdkafka",
@@ -1288,7 +1238,7 @@ filegroup(
 def _com_github_fdio_vpp_vcl():
     external_http_archive(
         name = "com_github_fdio_vpp_vcl",
-        build_file_content = _build_all_content(exclude = ["**/*doc*/**", "**/examples/**", "**/plugins/**"]),
+        build_file_content = BUILD_ALL_CONTENT,
         patches = ["@envoy//bazel/foreign_cc:vpp_vcl.patch"],
     )
 

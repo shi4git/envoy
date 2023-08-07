@@ -107,8 +107,7 @@ public:
    */
   virtual TlsCertificateConfigProviderSharedPtr findOrCreateTlsCertificateProvider(
       const envoy::config::core::v3::ConfigSource& config_source, const std::string& config_name,
-      Server::Configuration::TransportSocketFactoryContext& secret_provider_context,
-      Init::Manager& init_manager) PURE;
+      Server::Configuration::TransportSocketFactoryContext& secret_provider_context) PURE;
 
   /**
    * Finds and returns a dynamic secret provider associated to SDS config. Create
@@ -124,8 +123,7 @@ public:
   virtual CertificateValidationContextConfigProviderSharedPtr
   findOrCreateCertificateValidationContextProvider(
       const envoy::config::core::v3::ConfigSource& config_source, const std::string& config_name,
-      Server::Configuration::TransportSocketFactoryContext& secret_provider_context,
-      Init::Manager& init_manager) PURE;
+      Server::Configuration::TransportSocketFactoryContext& secret_provider_context) PURE;
 
   /**
    * Finds and returns a dynamic secret provider associated to SDS config. Create
@@ -141,8 +139,7 @@ public:
   virtual TlsSessionTicketKeysConfigProviderSharedPtr
   findOrCreateTlsSessionTicketKeysContextProvider(
       const envoy::config::core::v3::ConfigSource& config_source, const std::string& config_name,
-      Server::Configuration::TransportSocketFactoryContext& secret_provider_context,
-      Init::Manager& init_manager) PURE;
+      Server::Configuration::TransportSocketFactoryContext& secret_provider_context) PURE;
 
   /**
    * Finds and returns a dynamic secret provider associated to SDS config. Create a new one if such
@@ -156,8 +153,7 @@ public:
    */
   virtual GenericSecretConfigProviderSharedPtr findOrCreateGenericSecretProvider(
       const envoy::config::core::v3::ConfigSource& config_source, const std::string& config_name,
-      Server::Configuration::TransportSocketFactoryContext& secret_provider_context,
-      Init::Manager& init_manager) PURE;
+      Server::Configuration::TransportSocketFactoryContext& secret_provider_context) PURE;
 };
 
 using SecretManagerPtr = std::unique_ptr<SecretManager>;

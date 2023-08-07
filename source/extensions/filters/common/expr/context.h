@@ -9,6 +9,7 @@
 #include "source/common/singleton/const_singleton.h"
 
 #include "eval/public/cel_value.h"
+#include "eval/public/cel_value_producer.h"
 #include "eval/public/containers/container_backed_list_impl.h"
 #include "eval/public/structs/cel_proto_wrapper.h"
 
@@ -80,15 +81,6 @@ constexpr absl::string_view Upstream = "upstream";
 constexpr absl::string_view UpstreamLocalAddress = "local_address";
 constexpr absl::string_view UpstreamTransportFailureReason = "transport_failure_reason";
 
-// xDS configuration context properties
-constexpr absl::string_view XDS = "xds";
-constexpr absl::string_view ClusterName = "cluster_name";
-constexpr absl::string_view ClusterMetadata = "cluster_metadata";
-constexpr absl::string_view RouteName = "route_name";
-constexpr absl::string_view RouteMetadata = "route_metadata";
-constexpr absl::string_view UpstreamHostMetadata = "upstream_host_metadata";
-constexpr absl::string_view FilterChainName = "filter_chain_name";
-
 class WrapperFieldValues {
 public:
   using ContainerBackedListImpl = google::api::expr::runtime::ContainerBackedListImpl;
@@ -149,23 +141,28 @@ private:
 // Wrapper for accessing properties from internal data structures.
 // Note that CEL assumes no ownership of the underlying data, so temporary
 // data must be arena-allocated.
-class BaseWrapper : public google::api::expr::runtime::CelMap {
+class BaseWrapper : public google::api::expr::runtime::CelMap,
+                    public google::api::expr::runtime::CelValueProducer {
 public:
-  BaseWrapper(Protobuf::Arena& arena) : arena_(arena) {}
   int size() const override { return 0; }
+  CelValue Produce(ProtobufWkt::Arena* arena) override {
+    // Producer is unique per evaluation arena since activation is re-created.
+    arena_ = arena;
+    return CelValue::CreateMap(this);
+  }
   absl::StatusOr<const google::api::expr::runtime::CelList*> ListKeys() const override {
     return absl::UnimplementedError("ListKeys() is not implemented");
   }
 
 protected:
-  ProtobufWkt::Arena& arena_;
+  ProtobufWkt::Arena* arena_;
 };
 
 class RequestWrapper : public BaseWrapper {
 public:
   RequestWrapper(Protobuf::Arena& arena, const Http::RequestHeaderMap* headers,
                  const StreamInfo::StreamInfo& info)
-      : BaseWrapper(arena), headers_(arena, headers), info_(info) {}
+      : headers_(arena, headers), info_(info) {}
   absl::optional<CelValue> operator[](CelValue key) const override;
 
 private:
@@ -177,7 +174,7 @@ class ResponseWrapper : public BaseWrapper {
 public:
   ResponseWrapper(Protobuf::Arena& arena, const Http::ResponseHeaderMap* headers,
                   const Http::ResponseTrailerMap* trailers, const StreamInfo::StreamInfo& info)
-      : BaseWrapper(arena), headers_(arena, headers), trailers_(arena, trailers), info_(info) {}
+      : headers_(arena, headers), trailers_(arena, trailers), info_(info) {}
   absl::optional<CelValue> operator[](CelValue key) const override;
 
 private:
@@ -188,8 +185,7 @@ private:
 
 class ConnectionWrapper : public BaseWrapper {
 public:
-  ConnectionWrapper(Protobuf::Arena& arena, const StreamInfo::StreamInfo& info)
-      : BaseWrapper(arena), info_(info) {}
+  ConnectionWrapper(const StreamInfo::StreamInfo& info) : info_(info) {}
   absl::optional<CelValue> operator[](CelValue key) const override;
 
 private:
@@ -198,8 +194,7 @@ private:
 
 class UpstreamWrapper : public BaseWrapper {
 public:
-  UpstreamWrapper(Protobuf::Arena& arena, const StreamInfo::StreamInfo& info)
-      : BaseWrapper(arena), info_(info) {}
+  UpstreamWrapper(const StreamInfo::StreamInfo& info) : info_(info) {}
   absl::optional<CelValue> operator[](CelValue key) const override;
 
 private:
@@ -208,8 +203,7 @@ private:
 
 class PeerWrapper : public BaseWrapper {
 public:
-  PeerWrapper(Protobuf::Arena& arena, const StreamInfo::StreamInfo& info, bool local)
-      : BaseWrapper(arena), info_(info), local_(local) {}
+  PeerWrapper(const StreamInfo::StreamInfo& info, bool local) : info_(info), local_(local) {}
   absl::optional<CelValue> operator[](CelValue key) const override;
 
 private:
@@ -217,24 +211,24 @@ private:
   const bool local_;
 };
 
+class MetadataProducer : public google::api::expr::runtime::CelValueProducer {
+public:
+  MetadataProducer(const envoy::config::core::v3::Metadata& metadata) : metadata_(metadata) {}
+  CelValue Produce(ProtobufWkt::Arena* arena) override {
+    return CelProtoWrapper::CreateMessage(&metadata_, arena);
+  }
+
+private:
+  const envoy::config::core::v3::Metadata& metadata_;
+};
+
 class FilterStateWrapper : public BaseWrapper {
 public:
-  FilterStateWrapper(Protobuf::Arena& arena, const StreamInfo::FilterState& filter_state)
-      : BaseWrapper(arena), filter_state_(filter_state) {}
+  FilterStateWrapper(const StreamInfo::FilterState& filter_state) : filter_state_(filter_state) {}
   absl::optional<CelValue> operator[](CelValue key) const override;
 
 private:
   const StreamInfo::FilterState& filter_state_;
-};
-
-class XDSWrapper : public BaseWrapper {
-public:
-  XDSWrapper(Protobuf::Arena& arena, const StreamInfo::StreamInfo& info)
-      : BaseWrapper(arena), info_(info) {}
-  absl::optional<CelValue> operator[](CelValue key) const override;
-
-private:
-  const StreamInfo::StreamInfo& info_;
 };
 
 } // namespace Expr

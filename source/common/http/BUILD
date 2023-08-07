@@ -515,7 +515,6 @@ envoy_cc_library(
         "//envoy/common:regex_interface",
         "//envoy/http:header_map_interface",
         "//source/common/common:matchers_lib",
-        "//source/common/common:minimal_logger_lib",
         "//source/common/common:regex_lib",
         "//source/common/common:utility_lib",
         "//source/common/protobuf:utility_lib",

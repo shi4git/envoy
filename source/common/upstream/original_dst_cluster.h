@@ -51,8 +51,6 @@ public:
                      Server::Configuration::TransportSocketFactoryContextImpl& factory_context,
                      Stats::ScopeSharedPtr&& stats_scope, bool added_via_api);
 
-  ~OriginalDstCluster() override { cleanup_timer_->disableTimer(); }
-
   // Upstream::Cluster
   InitializePhase initializePhase() const override { return InitializePhase::Primary; }
 

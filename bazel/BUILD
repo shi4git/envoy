@@ -304,8 +304,7 @@ config_setting(
 bool_flag(
     name = "http3",
     build_setting_default = True,
-    # TODO(keith): make private again https://github.com/bazelbuild/bazel-skylib/issues/404
-    # visibility = ["//visibility:private"],
+    visibility = ["//visibility:private"],
 )
 
 config_setting(
@@ -313,8 +312,7 @@ config_setting(
     flag_values = {
         ":http3": "False",
     },
-    # TODO(keith): make private again https://github.com/bazelbuild/bazel-skylib/issues/404
-    # visibility = ["//visibility:private"],
+    visibility = ["//visibility:private"],
 )
 
 selects.config_setting_group(
@@ -333,8 +331,7 @@ config_setting(
 config_setting(
     name = "disable_hot_restart_setting",
     values = {"define": "hot_restart=disabled"},
-    # TODO(keith): make private again https://github.com/bazelbuild/bazel-skylib/issues/404
-    # visibility = ["//visibility:private"],
+    visibility = ["//visibility:private"],
 )
 
 selects.config_setting_group(
@@ -399,6 +396,7 @@ config_setting(
     name = "boringssl_fips",
     constraint_values = [
         "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
     ],
     values = {"define": "boringssl=fips"},
 )

@@ -43,8 +43,7 @@ std::vector<Secret::TlsCertificateConfigProviderSharedPtr> getTlsCertificateConf
       if (sds_secret_config.has_sds_config()) {
         // Fetch dynamic secret.
         providers.push_back(factory_context.secretManager().findOrCreateTlsCertificateProvider(
-            sds_secret_config.sds_config(), sds_secret_config.name(), factory_context,
-            factory_context.initManager()));
+            sds_secret_config.sds_config(), sds_secret_config.name(), factory_context));
       } else {
         // Load static secret.
         auto secret_provider = factory_context.secretManager().findStaticTlsCertificateProvider(
@@ -66,8 +65,7 @@ Secret::CertificateValidationContextConfigProviderSharedPtr getProviderFromSds(
   if (sds_secret_config.has_sds_config()) {
     // Fetch dynamic secret.
     return factory_context.secretManager().findOrCreateCertificateValidationContextProvider(
-        sds_secret_config.sds_config(), sds_secret_config.name(), factory_context,
-        factory_context.initManager());
+        sds_secret_config.sds_config(), sds_secret_config.name(), factory_context);
   } else {
     // Load static secret.
     auto secret_provider =
@@ -130,8 +128,7 @@ Secret::TlsSessionTicketKeysConfigProviderSharedPtr getTlsSessionTicketKeysConfi
     if (sds_secret_config.has_sds_config()) {
       // Fetch dynamic secret.
       return factory_context.secretManager().findOrCreateTlsSessionTicketKeysContextProvider(
-          sds_secret_config.sds_config(), sds_secret_config.name(), factory_context,
-          factory_context.initManager());
+          sds_secret_config.sds_config(), sds_secret_config.name(), factory_context);
     } else {
       // Load static secret.
       auto secret_provider =

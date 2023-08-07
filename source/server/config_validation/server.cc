@@ -11,7 +11,6 @@
 #include "source/common/protobuf/utility.h"
 #include "source/common/singleton/manager_impl.h"
 #include "source/common/version/version.h"
-#include "source/server/regex_engine.h"
 #include "source/server/ssl_context_manager.h"
 
 namespace Envoy {
@@ -82,10 +81,6 @@ void ValidationInstance::initialize(const Options& options,
   // Handle configuration that needs to take place prior to the main configuration load.
   InstanceUtil::loadBootstrapConfig(bootstrap_, options,
                                     messageValidationContext().staticValidationVisitor(), *api_);
-
-  // Inject regex engine to singleton.
-  Regex::EnginePtr regex_engine = createRegexEngine(
-      bootstrap_, messageValidationContext().staticValidationVisitor(), serverFactoryContext());
 
   Config::Utility::createTagProducer(bootstrap_, options_.statsTags());
   if (!bootstrap_.node().user_agent_build_version().has_version()) {

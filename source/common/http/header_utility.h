@@ -125,18 +125,18 @@ public:
   static bool matchHeaders(const HeaderMap& request_headers, const HeaderData& config_header);
 
   /**
+   * Validates the provided scheme is valid (either http or https)
+   * @param scheme the scheme to validate
+   * @return bool true if the scheme is valid.
+   */
+  static bool schemeIsValid(const absl::string_view scheme);
+
+  /**
    * Validates that a header value is valid, according to RFC 7230, section 3.2.
    * http://tools.ietf.org/html/rfc7230#section-3.2
    * @return bool true if the header values are valid, according to the aforementioned RFC.
    */
   static bool headerValueIsValid(const absl::string_view header_value);
-
-  /**
-   * Validates that a header name is valid, according to RFC 7230, section 3.2.
-   * http://tools.ietf.org/html/rfc7230#section-3.2
-   * @return bool true if the header name is valid, according to the aforementioned RFC.
-   */
-  static bool headerNameIsValid(const absl::string_view header_key);
 
   /**
    * Checks if header name contains underscore characters.
@@ -230,14 +230,6 @@ public:
    */
   static Http::Status checkRequiredResponseHeaders(const Http::ResponseHeaderMap& headers);
 
-  /* Does a common header check ensuring that header keys and values are valid and do not contain
-   * forbidden characters (e.g. valid HTTP header keys/values should never contain embedded NULLs
-   * or new lines.)
-   * @return Status containing the result. If failed, message includes details on which header key
-   * or value was invalid.
-   */
-  static Http::Status checkValidRequestHeaders(const Http::RequestHeaderMap& headers);
-
   /**
    * Returns true if a header may be safely removed without causing additional
    * problems. Effectively, header names beginning with ":" and the "host" header
@@ -298,11 +290,6 @@ public:
    */
   static std::string addEncodingToAcceptEncoding(absl::string_view accept_encoding_header,
                                                  absl::string_view encoding);
-
-  /**
-   * Return true if the given header name is a pseudo header.
-   */
-  static bool isPseudoHeader(absl::string_view header_name);
 };
 
 } // namespace Http

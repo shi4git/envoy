@@ -19,6 +19,7 @@ from datetime import datetime
 import yaml
 
 from sphinx.directives.code import CodeBlock
+import sphinx_rtd_theme
 
 # TODO(phlax): move the pygments style to envoy.docs.sphinx_runner and remove this
 sys.path.append(os.path.abspath("./_pygments"))
@@ -93,24 +94,18 @@ def _config(key):
 sys.path.append(os.path.abspath("./_ext"))
 
 extensions = [
-    'envoy.docs.sphinx_runner.ext.httpdomain',
-    'sphinx.ext.extlinks',
-    'sphinx.ext.ifconfig',
-    'sphinx.ext.intersphinx',
-    'envoy.docs.sphinx_runner.sphinx_tabs.tabs',
-    'sphinx_copybutton',
-    'envoy.docs.sphinx_runner.ext.validating_code_block',
-    'sphinxext.rediraffe',
-    'envoy.docs.sphinx_runner.ext.powershell_lexer',
-    'sphinxcontrib.jquery',
+    'envoy.docs.sphinx_runner.ext.httpdomain', 'sphinx.ext.extlinks', 'sphinx.ext.ifconfig',
+    'sphinx.ext.intersphinx', 'sphinx_tabs.tabs', 'sphinx_copybutton',
+    'envoy.docs.sphinx_runner.ext.validating_code_block', 'sphinxext.rediraffe',
+    'envoy.docs.sphinx_runner.ext.powershell_lexer'
 ]
 
 release_level = _config('release_level')
 blob_sha = _config('blob_sha')
 
 extlinks = {
-    'repo': ('https://github.com/envoyproxy/envoy/blob/{}/%s'.format(blob_sha), '%s'),
-    'api': ('https://github.com/envoyproxy/envoy/blob/{}/api/%s'.format(blob_sha), '%s'),
+    'repo': ('https://github.com/envoyproxy/envoy/blob/{}/%s'.format(blob_sha), ''),
+    'api': ('https://github.com/envoyproxy/envoy/blob/{}/api/%s'.format(blob_sha), ''),
 }
 
 # Only lookup intersphinx for explicitly prefixed in cross-references
@@ -169,7 +164,7 @@ rst_epilog = """
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = "en"
+language = None
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
@@ -229,7 +224,7 @@ html_theme_options = {
 }
 
 # Add any paths that contain custom themes here, relative to this directory.
-# html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # The name for this set of Sphinx documents.
 # "<project> v<release> documentation" by default.
